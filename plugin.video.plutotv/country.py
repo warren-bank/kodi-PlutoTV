@@ -52,7 +52,8 @@ def getAlpha2(idx):
     return str((COUNTRY_LIST[idx])['alpha_2'])
         
 def selectDialog(list, header=ADDON_NAME):
-    select = xbmcgui.Dialog().select(LANGUAGE(30005), list, preselect=getCurrentRegion())
+  # select = xbmcgui.Dialog().select(LANGUAGE(30005), list, preselect=getCurrentRegion())
+    select = xbmcgui.Dialog().select(LANGUAGE(30005), list)
     if select > -1:
         return select
         

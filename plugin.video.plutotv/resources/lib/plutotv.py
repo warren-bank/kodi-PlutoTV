@@ -84,7 +84,17 @@ def getParams():
             if (len(splitparams))==2:
                 param[splitparams[0]]=splitparams[1]
     return param
-                 
+
+def collectionsCounter(word_array):
+    # https://codereview.stackexchange.com/questions/118914/word-frequency-counter
+    word_occurence_array = []
+    for word in word_array:
+        occurence_count = word_array.count(word)
+        word_occurence_array.append((word, occurence_count))
+    word_occurence_array = list(set(word_occurence_array))
+    word_occurence_array.sort(key=lambda tup: (-tup[1], tup[0]))
+    return word_occurence_array
+
 socket.setdefaulttimeout(TIMEOUT)
 class PlutoTV():
     def __init__(self):
@@ -168,7 +178,9 @@ class PlutoTV():
                 self.cache.set(ADDON_NAME + '.openURL, url = %s'%url, req, expiration=datetime.timedelta(hours=1))
             response = self.cache.get(ADDON_NAME + '.openURL, url = %s'%url)
             if isinstance(response, basestring):
+                log("HTTP raw JSON response = "+response)
                 response = json.loads(response)
+                log("parsed JSON response = "+str(response))
             return response
         except Exception,e:
             log('openURL, Unable to open url ' + str(e), xbmc.LOGERROR)
@@ -188,7 +200,6 @@ class PlutoTV():
         for item in self.categoryMenu:
             self.addDir(*item)
 
-           
     def getCategories(self):
         log('getCategories')
         collect= []
@@ -196,8 +207,10 @@ class PlutoTV():
         data = self.openURL(BASE_LINEUP)
         for channel in data:
             collect.append(channel['category'])
-        counter = collections.Counter(collect)
-        for key, value in sorted(counter.iteritems()):
+      # counter = collections.Counter(collect)
+      # for key, value in sorted(counter.iteritems()):
+        counter = collectionsCounter(collect)
+        for key, value in counter:
             lineup.append(("%s"%(key), BASE_LINEUP, 2))
         lineup.insert(0,("Featured"  , BASE_LINEUP, 2))
         lineup.insert(2,("All Channels", BASE_LINEUP, 2))
@@ -298,8 +311,10 @@ class PlutoTV():
                     xbmcgui.Dialog().notification(ADDON_NAME, LANGUAGE(30004), ICON, 4000)
                 continue
 
-            t1   = datetime.datetime.now().strftime('%Y-%m-%dT%H:00:00')
-            t2   = (datetime.datetime.now() + datetime.timedelta(hours=8)).strftime('%Y-%m-%dT%H:00:00')
+          # t1   = datetime.datetime.now().strftime('%Y-%m-%dT%H:00:00')
+          # t2   = (datetime.datetime.now() + datetime.timedelta(hours=8)).strftime('%Y-%m-%dT%H:00:00')
+            t1   = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:00:00')
+            t2   = (datetime.datetime.utcnow() + datetime.timedelta(hours=8)).strftime('%Y-%m-%dT%H:00:00')
             link = (self.openURL(BASE_GUIDE % (t1,t2)))
             item = link[chid][0]
             epid      = (item['episode']['_id'])
@@ -341,14 +356,17 @@ class PlutoTV():
         origurl  = url
         playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
         playlist.clear()
-        
-        t1   = datetime.datetime.now().strftime('%Y-%m-%dT%H:00:00')
-        t2   = (datetime.datetime.now() + datetime.timedelta(hours=8)).strftime('%Y-%m-%dT%H:00:00')
+
+      # t1   = datetime.datetime.now().strftime('%Y-%m-%dT%H:00:00')
+      # t2   = (datetime.datetime.now() + datetime.timedelta(hours=8)).strftime('%Y-%m-%dT%H:00:00')
+        t1   = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:00:00')
+        t2   = (datetime.datetime.utcnow() + datetime.timedelta(hours=8)).strftime('%Y-%m-%dT%H:00:00')
         link = (self.openURL(BASE_GUIDE % (t1,t2)))
         item = link[origurl][0]
         id = item['episode']['_id']
         ch_start = datetime.datetime.fromtimestamp(time.mktime(time.strptime((item["start"].split('.')[0]), "%Y-%m-%dT%H:%M:%S")))
-        ch_timediff = (datetime.datetime.now() - ch_start).seconds
+      # ch_timediff = (datetime.datetime.now() - ch_start).seconds
+        ch_timediff = (datetime.datetime.utcnow() - ch_start).seconds
 
         data = (self.openURL(BASE_CLIPS %(id)))
         dur_sum  = 0
@@ -384,13 +402,21 @@ class PlutoTV():
     def playContent(self, name, url):
         log('playContent')
         origurl = url
-        t1   = datetime.datetime.now().strftime('%Y-%m-%dT%H:00:00')
-        t2   = (datetime.datetime.now() + datetime.timedelta(hours=8)).strftime('%Y-%m-%dT%H:00:00')
+      # t1   = datetime.datetime.now().strftime('%Y-%m-%dT%H:00:00')
+      # t2   = (datetime.datetime.now() + datetime.timedelta(hours=8)).strftime('%Y-%m-%dT%H:00:00')
+        t1   = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:00:00')
+        t2   = (datetime.datetime.utcnow() + datetime.timedelta(hours=8)).strftime('%Y-%m-%dT%H:00:00')
+
         link = (self.openURL(BASE_GUIDE % (t1,t2)))
+
+        log("origurl = "+origurl)
+        log("link = "+str(link))
+        log("link[origurl] = "+str(link[origurl]))
         item = link[origurl][0]
         id = item['episode']['_id']
         ch_start = datetime.datetime.fromtimestamp(time.mktime(time.strptime((item["start"].split('.')[0]), "%Y-%m-%dT%H:%M:%S")))
-        ch_timediff = (datetime.datetime.now() - ch_start).seconds
+      # ch_timediff = (datetime.datetime.now() - ch_start).seconds
+        ch_timediff = (datetime.datetime.utcnow() - ch_start).seconds
         data = (self.openURL(BASE_CLIPS %(id)))
         dur_sum  = 0
         

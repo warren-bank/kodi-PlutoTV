@@ -1,0 +1,23 @@
+git init
+git remote add origin git@github.com:warren-bank/kodi-PlutoTV.git
+
+git checkout --orphan '17_krypton'
+# copy files
+git add --all .
+git commit -m 'v1.0.7-krypton'
+git push -u origin '17_krypton'
+git tag '1.0.7-krypton'
+git push --tags origin
+
+git checkout -b '16_jarvis'
+# copy files
+git add --all .
+git commit -m 'v1.0.7-jarvis'
+git push -u origin '16_jarvis'
+git tag '1.0.7-jarvis'
+git push --tags origin
+
+# in github, make '16_jarvis' the default branch
+
+git branch -D master
+git push origin --delete master
